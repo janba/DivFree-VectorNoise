@@ -29,7 +29,7 @@ DFVN_trace = dfvn.DFVN_trace
 plo, phi = array([-30, -30, 0]), array([30,  30, 60])
 
 dfvn = DFVN_trace(seed=42, dimensions=3, scale=0.05)
-do_reproject = True
+do_reproject = False # Change to true to do reprojection as discussed in paper
 N=300
 step_len=1.0
 
@@ -61,7 +61,7 @@ if 'bpy' in globals():
         for j, pt in enumerate(path):
             spline.points[j].co = (pt[0], pt[1], pt[2], 1)
 
-    curve_obj = bpy.data.objects.new('AnimatePath_project_'+str(do_reproject), curve_data)
+    curve_obj = bpy.data.objects.new('streamline_reproject_'+str(do_reproject), curve_data)
     mod = curve_obj.modifiers.new(name="gn", type='NODES')
     mod.node_group = bpy.data.node_groups["make_tubes"]
     bpy.context.collection.objects.link(curve_obj)
