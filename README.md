@@ -7,9 +7,13 @@ A distinct benefit of our method is that the streamlines of our divergence-free 
 
 ## Shaders
 
-The `.fs` files in the `Shaders` directory are meant to be run in ShaderToy.
+The `.glsl` files in the `Shaders` directory are meant to be run in ShaderToy.
 
-- `image_warping.fs` produces the warped 2D images in Figure 5. This shader can also be accessed on ShaderToy: https://www.shadertoy.com/view/dl3cRf .
+- `image_warping.glsl` produces the warped 2D images in Figure 5. This shader can also be accessed on ShaderToy: https://www.shadertoy.com/view/dl3cRf .
+- `shader_2d_1d.glsl` This demonstrates curl noise within an area progressively constrained to follow the boundary curve.
+- `shader_3d_2d.glsl` This demonstrates curl noise within a volume, progressively constrained to follow the enclosing surface.
+- `shader_marble.glsl` produces the warped 2D images in Figure 5. This version is from the original supplementary material and does not have the AA option. 
+- `shader_torus.glsl`  This demonstrates curl noise along a torus surface, obtained as the cross product of a solid noise gradient and the gradient of the torus distance field.
 
 ## Python and Blender files
 

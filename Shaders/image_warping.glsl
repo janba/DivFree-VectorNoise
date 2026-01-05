@@ -1,3 +1,12 @@
+/*
+
+  Accompanying code, Improving Curl Noise, SIGGRAPH Asia 2025
+  ---
+
+  This code warps a 2D image using divergence-free vector noise.
+
+*/
+
 //CURL NOISE CONTROLS
 
 //Use anti aliasing (set to one to enable - very slow)
