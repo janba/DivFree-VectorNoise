@@ -1,9 +1,6 @@
 import numpy as np
 from numpy.linalg import norm, cond
-from numpy import array
-#from simplex import SimplexNoise
 from sine_wave_noise_3d import SineWaveNoise3D
-#from numba import njit
 from scipy.linalg import lstsq
 from scipy.special import gamma
 from scipy.spatial import cKDTree
@@ -11,14 +8,6 @@ from scipy.stats.qmc import Sobol
 from math import log
 from scipy.stats.qmc import PoissonDisk
 
-
-def average_neighborhood_distance(n):
-    """ Calculate the average distance between points in a neighborhood of size n."""
-    m = 3**n-1  # Total number of points in the neighborhood
-    d_avg = (1/m) * sum(2**i * binomial_coefficient(n, i) * i**0.5 for i in range(1,n+1))
-    return d_avg
-
-#@njit
 def binomial_coefficient(n, m):
     if m < 0 or m > n:
         return 0
@@ -30,14 +19,20 @@ def binomial_coefficient(n, m):
         c = c * (n - i) // (i + 1)
     return c
 
+def average_neighborhood_distance(n):
+    ''' Calculate the average distance between points in a neighborhood of size n.'''
+    m = 3**n-1  # Total number of points in the neighborhood
+    d_avg = (1/m) * sum(2**i * binomial_coefficient(n, i) * i**0.5 for i in range(1,n+1))
+    return d_avg
+
 def compute_rdf(points, max_radius, num_bins):
-    """ Compute the radial distribution function (RDF) for a point cloud in n-dimensional space.
+    ''' Compute the radial distribution function (RDF) for a point cloud in n-dimensional space.
     Parameters:
     points (numpy.ndarray): The point cloud, an array of shape (N, D) where N is the number of points and D is the dimensionality.
     max_radius (float): The maximum radius to consider for the RDF.
     num_bins (int): The number of bins to use for the RDF.
     Returns:
-    tuple: A tuple containing the RDF values and the corresponding radii."""
+    tuple: A tuple containing the RDF values and the corresponding radii.'''
     N, D = points.shape
     radii = np.linspace(0, max_radius, num_bins + 1)
     rdf_values = np.zeros(num_bins)
@@ -71,14 +66,12 @@ def compute_rdf(points, max_radius, num_bins):
 
     return rdf_values, radii[:-1], min_dist, avg_dist, med_dist
 
-
-#@njit
 def nD_cross_product(*vectors: list[np.ndarray]) -> np.ndarray:
-    """Compute the n-dimensional cross product of n-1 vectors in n-dimensional space.
+    '''Compute the n-dimensional cross product of n-1 vectors in n-dimensional space.
     Parameters:
     vectors: n-1 nD vectors passed as numpy arrays of type float64.
     Returns:
-    numpy.ndarray: The resulting n-dimensional vector of shape (n,)."""
+    numpy.ndarray: The resulting n-dimensional vector of shape (n,).'''
     n = len(vectors[0])
     if len(vectors) != n - 1:
         raise ValueError("Number of vectors must be one less than their dimension.")
@@ -94,9 +87,9 @@ def nD_cross_product(*vectors: list[np.ndarray]) -> np.ndarray:
 
 
 class DFVN_trace:
-    """Class to perform n-dimensional divergence-free vector field tracing based on Simplex Noise."""
+    '''Class to perform n-dimensional divergence-free vector field tracing based on Simplex Noise.'''
     def __init__(self, seed=42, dimensions=3, scale=1.0):
-        """Initialize the DFVN trace with a given seed, dimensions, and scale."""
+        '''Initialize the DFVN trace with a given seed, dimensions, and scale.'''
         self.seed = seed
         self.dimensions = dimensions
         self.noise = SineWaveNoise3D(seed=seed, num_waves=64, frequency_scale=1.0)
@@ -161,7 +154,7 @@ class DFVN_trace:
 
 
     def dfvn_trace(self, p, _t=1.0):
-        """Perform the DFVN trace on a point p with a given time step _t."""
+        '''Perform the DFVN trace on a point p with a given time step _t.'''
         t = _t / self.scale
         c_vec, nvals = self.curl_noise(p)
         a = t * c_vec
@@ -177,13 +170,14 @@ class DFVN_trace:
         return p, iters, b_norm
 
     def dfvn_multi_trace(self, p, _t=1.0, N=1, w_project=True):
-        """Perform the DFVN trace on a point p with a given time step _t."""
+        '''Perform the DFVN trace on a point p with a given time step _t.'''
         t = _t / self.scale
         p = np.array(p)
         _, nvals = self.curl_noise(p)
         path = [p]
         for _ in range(N):
             c_vec, _ = self.curl_noise(p)
+            # Below is the RK4 integration, currently disabled for performance
             # a = t * c_vec
             # c_vec, _ = self.curl_noise(p + a/2)
             # b = t * c_vec
@@ -199,10 +193,11 @@ class DFVN_trace:
         return path
     
     def jitter(self, p, delta):
-        """Apply jitter to a point p based on the number of points,k, along each dimension."""
+        '''Apply jitter to a point p based on the number of points,k, along each dimension.'''
         return p + np.random.uniform(-delta/2, delta/2, self.dimensions)
     
 def sobol(k, n, delta):
+    '''Create points using a Sobol sequence.'''
     num = 2**int(round(log(k**n)/log(2)))
     sobol_seq = Sobol(d=n)
     points = sobol_seq.random(num)
@@ -210,6 +205,7 @@ def sobol(k, n, delta):
     return points*u_bounds
 
 def pds(k, n, delta):
+    '''Create points using a Poisson Disk Sampling sequence.'''
     l_bounds=np.zeros(n)
     u_bounds=np.ones(n)*delta*k
     pds_seq = PoissonDisk(d=n, radius=delta, l_bounds=l_bounds, u_bounds=u_bounds)
@@ -217,12 +213,13 @@ def pds(k, n, delta):
     return points
 
 def create_nd_grid(k, n, delta=None):
+    '''Create an n-dimensional grid with k points along each dimension.'''
     if delta is None:
         delta=1/k
     grid = np.array(np.meshgrid(*[np.linspace(delta/2, 1-delta/2, k) for _ in range(n)])).T.reshape(-1, n)
     return grid
 
 def filter_grid(grid):
-    # Filter grid to remove points outside the unit cube
+    '''Filter grid to remove points outside the unit cube'''
     filtered_grid = grid[np.all((grid >= 0) & (grid <= 1), axis=1)]
     return filtered_grid
