@@ -16,7 +16,7 @@ import importlib
 import bpy
 
 # Change script dir below to the path to the PySrc directory
-script_dir = "/Users/janba/CloudSrc/DivFree-VectorNoise/PySrc"
+script_dir = "/Users/janba/CloudSrc/DivFree-VectorNoise/PySrc/"
 
 # Add the script directory to sys.path if it's not already there
 if script_dir not in sys.path:
@@ -29,7 +29,7 @@ DFVN_trace = dfvn.DFVN_trace
 plo, phi = array([-30, -30, 0]), array([30,  30, 60])
 
 dfvn = DFVN_trace(seed=42, dimensions=3, scale=0.05)
-do_reproject = False # Change to true to do reprojection as discussed in paper
+do_reproject = True # Change to true to do reprojection as discussed in paper
 N=300
 step_len=1.0
 
