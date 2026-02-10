@@ -274,10 +274,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv.y += 0.05*abs(cos(1.0*PI*10.0*(uv.x-uv.y)));
     float n = dot(uv, vec2(0,1))+ 1213.12;
 #if AA==1
-    fragColor.rgb += 0.0625*viridis_quintic(f_hash(n));
+    fragColor.rgb = 0.0625*viridis_quintic(f_hash(n));
     }
 #else
-    fragColor.rgb += viridis_quintic(f_hash(n));
+    fragColor.rgb = viridis_quintic(f_hash(n));
 #endif
 
 }
